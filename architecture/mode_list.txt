@@ -1,0 +1,8 @@
+impl Implied 1
+imm Immediate 2
+ac AC 1
+rel Relative 2
+abs Absolute 3
+abx Absolute,X 3
+aby Absolute,Y 3
+ind Indirect 3

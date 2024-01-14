@@ -1,0 +1,23 @@
+JMP abs ind
+JSR abs
+RTS impl
+LDA imm abs abx aby
+LDX imm abs aby ac
+LDY imm abs abx ac
+ADD imm abs abx aby
+SUB imm abs abx aby
+DIV imm abs abx aby
+MUL imm abs abx aby
+PSH imm abs abx aby ac
+POP impl
+SHL abs abx aby ac
+SHR abs abx aby ac
+AND abs abx aby ac
+OR abs abx aby ac
+NOR abs abx aby ac
+XOR abs abx aby ac
+STA abs abx aby
+STX abs abx aby
+STY abs abx aby
+CLM impl
+NOP impl
