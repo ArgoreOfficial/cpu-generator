@@ -38,20 +38,19 @@ end
 
 int main()
 {
-	cBytecodeSequence seq;
-	/*
-	seq.push( "PCH <- [$PC+1]" );
-	seq.push( "PCL <- [ $PC + 2 ]" );
-	seq.push( "5 <- [$0]" );
-	seq.push( "4 -> [$1]" );
-	*/
+	cBytecodeSequence seq_jsr;
+	seq_jsr.push( "[$SP] <- PCL" );
+	seq_jsr.push( "[SP] <- [SP] + 1" );
+	seq_jsr.push( "[$SP] <- PCH" );
+	seq_jsr.push( "[SP] <- [SP] + 1" );
+	seq_jsr.push( "PCH <- [$PC+1]" );
+	seq_jsr.push( "PCL <- [$PC+2]" );
+	seq_jsr.construct( "JSR" );
 
-	seq.push( "PCL <- M" );
-	seq.push( "PC <- [SP]" );
-	seq.push( "PC -> [$SP+1]" );
-
-
-	seq.construct();
+	cBytecodeSequence seq_jmp;
+	seq_jmp.push( "[PCH] <- [PC+1]" );
+	seq_jmp.push( "[PCL] <- [PC+2]" );
+	seq_jmp.construct( "JMP" );
 
 	return 0;
 }

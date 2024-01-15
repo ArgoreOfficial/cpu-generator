@@ -18,20 +18,34 @@ cBytecodeSequence::~cBytecodeSequence()
 	}
 }
 
-void cBytecodeSequence::construct()
+void cBytecodeSequence::construct( const std::string& _name )
 {
+	printf( "function() -- %s\n", _name.c_str() );
 	for ( int i = 0; i < m_sequence.size(); i++ )
 	{
-		printf( "%s\n", formatBytecode( *m_sequence[ i ] ).c_str() );
+		printf( "  %s\n", formatBytecode( *m_sequence[ i ] ).c_str() );
 	}
+	printf( "end\n\n" );
 }
 
 sBytecode* cBytecodeSequence::constructBytecode( std::string _str )
 {
 	_str.erase( std::remove( _str.begin(), _str.end(), ' ' ), _str.end() );
 
+	sBytecode* code_operation = constructOperation( _str );
+	if ( code_operation ) return code_operation;
+	sBytecode* code_value = constructAddress( _str );
+	if ( code_value ) return code_value;
+
+	return nullptr;
+}
+
+sBytecode* cBytecodeSequence::constructOperation( std::string _str )
+{
+	_str.erase( std::remove( _str.begin(), _str.end(), ' ' ), _str.end() );
+
 	std::vector<eBytecodeKey> keys;
-	
+
 	for ( int i = 0; i < _str.size(); i++ )
 	{
 		switch ( _str[ i ] )
@@ -39,18 +53,13 @@ sBytecode* cBytecodeSequence::constructBytecode( std::string _str )
 		case '[':
 			keys.push_back( kRegister );
 			break;
-		case '$':
+		case ']':
 			if ( !keys.empty() && keys.back() == kRegister )
-				keys.back() = kRegisterRef;
+				keys.pop_back();
 			break;
 		case '+':
-			if ( !keys.empty() && keys.back() == kRegisterRef )
-				keys.back() = kRegisterRefOffset;
-			else
+			if( keys.empty() || keys.back() != kRegister )
 				keys.push_back( kAdd );
-			break;
-		case 'M':
-			keys.push_back( kMemory );
 			break;
 		case '~':
 			keys.push_back( kXor );
@@ -67,8 +76,8 @@ sBytecode* cBytecodeSequence::constructBytecode( std::string _str )
 		case '-':
 			if ( !keys.empty() && keys.back() == kShiftLeft )
 				keys.back() = kCopyA;
-			else 
-				keys.push_back( kSubtract );
+			else
+			keys.push_back( kSubtract );
 			break;
 		case '*':
 			keys.push_back( kMult );
@@ -91,11 +100,49 @@ sBytecode* cBytecodeSequence::constructBytecode( std::string _str )
 	if ( keys.empty() )
 		return nullptr;
 
-	eBytecodeKey key = keys.front();
+	return constructBytecodeValues( keys.front(), _str );
+}
 
+sBytecode* cBytecodeSequence::constructAddress( std::string _str )
+{
+	std::vector<eBytecodeKey> keys;
+
+	for ( int i = 0; i < _str.size(); i++ )
+	{
+		switch ( _str[ i ] )
+		{
+		case '[':
+			keys.push_back( kRegister );
+			break;
+		case '$':
+			if ( !keys.empty() && keys.back() == kRegister )
+				keys.back() = kRegisterRef;
+			break;
+		case '+':
+			if ( !keys.empty() && keys.back() == kRegisterRef )
+				keys.back() = kRegisterRefOffset;
+			break;
+		case 'M':
+			keys.push_back( kMemory );
+			break;
+		case ']':
+			if ( !keys.empty() && ( keys.back() == kRegister || keys.back() == kRegisterRef ) )
+				i = _str.size();
+			break;
+		}
+	}
+
+	if ( keys.empty() )
+		return nullptr;
+
+	return constructBytecodeValues( keys.front(), _str );
+}
+
+sBytecode* cBytecodeSequence::constructBytecodeValues( eBytecodeKey _key, const std::string& _str )
+{
 	sBytecode* code = new sBytecode;
-	code->key = key;
-	std::vector<std::string> values = splitKeys( _str, key, key );
+	code->key = _key;
+	std::vector<std::string> values = splitKeys( _str, _key, _key );
 
 	sBytecode* code_a = constructBytecode( values[ 0 ] );
 	if ( code_a ) code->a.code = code_a;
@@ -135,7 +182,7 @@ std::string cBytecodeSequence::formatBytecode( sBytecode& _code )
 		return std::format( "RAM[{}]", a );
 		break;
 	case kRegisterRefOffset:
-		return std::format( "RAM[({} + {}) % 256]", a, b );
+		return std::format( "RAM[({} + {}) % 65536]", a, b );
 		break;
 	case kMemory:
 		return "mode_getmem()";

@@ -65,10 +65,16 @@ public:
 	~cBytecodeSequence();
 
 	void push( std::string _str ) { m_sequence.push_back( constructBytecode( _str ) ); }
-	void construct();
+	void construct( const std::string& _name );
 
 private:
 	sBytecode* constructBytecode( std::string _str );
+
+	sBytecode* constructOperation( std::string _str );
+	sBytecode* constructAddress( std::string _str );
+
+	sBytecode* constructBytecodeValues( eBytecodeKey _key, const std::string& _str );
+
 	std::string formatBytecode( sBytecode& _code );
 	std::vector<std::string> splitKeys( const std::string& _str, eBytecodeKey _key, char _divider );
 
