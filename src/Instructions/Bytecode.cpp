@@ -20,6 +20,9 @@ cBytecodeSequence::~cBytecodeSequence()
 
 void cBytecodeSequence::construct( const std::string& _name )
 {
+	if ( m_sequence.empty() )
+		return;
+
 	printf( "function() -- %s\n", _name.c_str() );
 	for ( int i = 0; i < m_sequence.size(); i++ )
 	{
@@ -185,7 +188,7 @@ std::string cBytecodeSequence::formatBytecode( sBytecode& _code )
 		return std::format( "RAM[({} + {}) % 65536]", a, b );
 		break;
 	case kMemory:
-		return "mode_getmem()";
+		return "arc.mode[MODE]()";
 		break;
 	case kCopyA:
 		return std::format( "{} = {}", a, b );
